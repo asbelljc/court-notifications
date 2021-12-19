@@ -45,10 +45,15 @@ async function purgeAndUpdateSubscriptions() {
   if (subscribers && subscribers.length > 0) {
     const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKE);
     for (let i = 0; i< subscribers.length; ++i) {
-      s = subscribers[i];
-      await i18next.changeLanguage(s.language);
-      const message = i18next.t('unsubscribe.purge');
-      await twilioSendMessage(client, s.phone, message);
+      try {
+        s = subscribers[i];
+        await i18next.changeLanguage(s.language);
+        const message = i18next.t('unsubscribe.purge');
+        await twilioSendMessage(client, s.phone, message);
+      } 
+      catch (err) {
+        logger.error('Error sending final unsubscribe notification: ' + err);
+      }
     }
   }
 
@@ -65,6 +70,7 @@ async function purgeAndUpdateSubscriptions() {
   if (defendantsToUpdate && defendantsToUpdate.length > 0) {
     await knex('records_to_update').insert(defendantsToUpdate);
   }
+
 }
 
 async function initTranslations() {
